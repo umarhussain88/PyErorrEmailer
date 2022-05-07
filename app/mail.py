@@ -4,6 +4,10 @@ from sendgrid.helpers.mail import Mail
 import os 
 from dataclasses import dataclass
 from .engine import Engine
+from app import init_logger
+
+
+logger = init_logger()
 
 
 @dataclass
@@ -33,6 +37,7 @@ class Mailer:
         """
 
 
+        logger.info(f'Sending email to: {to}')
         
         message = Mail(
             from_email=self.from_email,

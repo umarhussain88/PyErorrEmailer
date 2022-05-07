@@ -1,9 +1,12 @@
-from dataclasses import dataclass
-import os
-from sqlalchemy import create_engine
 import json
 from collections import namedtuple
+from dataclasses import dataclass
 
+from sqlalchemy import create_engine
+from app import init_logger
+
+
+logger = init_logger()
 
 @dataclass
 class Engine:
@@ -37,6 +40,7 @@ class SQLErrors(Engine):
         """
 
         with open("last_error_key.json", "w") as f:
+            logger.info(f"writing last error key: {key}")
             key = {"key": key}
             json.dump(key, f)
 
@@ -51,6 +55,7 @@ class SQLErrors(Engine):
         with open("last_error_key.json", "r") as f:
             last_error_file = json.load(f)
             last_error_key = last_error_file["key"]
+            logger.info(f"last error key: {last_error_key}")
 
         with self.engine.connect() as con:
             sql_string = f"""
@@ -59,9 +64,9 @@ class SQLErrors(Engine):
             """
 
             err = con.execute(sql_string)
-
-
-            return err.all()
+            errors = err.all()
+            logger.info(f"fetched {len(errors)} errors")
+            return errors
 
     def parse_errors(self, errors) -> namedtuple:
 
@@ -97,5 +102,6 @@ class SQLErrors(Engine):
                 "DateCreated",
             ],
         )
+        logger.info(f"parsing {len(errors)} errors")
 
         return tuple(ErrorRecord(*i) for i in errors)
