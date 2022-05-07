@@ -3,10 +3,10 @@ from collections import namedtuple
 from dataclasses import dataclass
 
 from sqlalchemy import create_engine
-from app import init_logger
+from .util import logger_util
 
 
-logger = init_logger()
+logger = logger_util(__name__)
 
 @dataclass
 class Engine:

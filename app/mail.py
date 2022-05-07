@@ -1,13 +1,14 @@
+import os
 from collections import namedtuple
+from dataclasses import dataclass
+
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-import os 
-from dataclasses import dataclass
+
 from .engine import Engine
-from app import init_logger
+from .util import logger_util
 
-
-logger = init_logger()
+logger = logger_util(__name__)
 
 
 @dataclass
@@ -16,8 +17,7 @@ class Mailer:
     SENDGRID_API_KEY: str = os.environ.get("SENDGRID_API_KEY")
     from_email: str = os.environ.get("FROM_EMAIL")
 
-
-    def send_error_email(self, to: str, message : namedtuple) -> None:
+    def send_error_email(self, to: str, message: namedtuple) -> None:
 
         """
         Sends an email to the specified email address
@@ -33,16 +33,15 @@ class Mailer:
                 - Section - The section the error occurred in.
                 - Procedure - The procedure the error occurred in.
                 - JobKey - The job key.
-                
+
         """
 
+        logger.info(f"Sending email to: {to}")
 
-        logger.info(f'Sending email to: {to}')
-        
         message = Mail(
             from_email=self.from_email,
             to_emails=to,
-            subject=f'An Error Has Occurred in the ETL Process - {message.ErrorKey}',
+            subject=f"An Error Has Occurred in the ETL Process - {message.ErrorKey}",
             html_content=f"""
             Hello {to},<br><br>
 
@@ -60,16 +59,13 @@ class Mailer:
 
             Sinerely,
             Octomar Digital.
-            """
-            
-            )
+            """,
+        )
         try:
-            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+            sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
             response = sg.send(message)
             print(response.status_code)
             print(response.body)
             print(response.headers)
         except Exception as e:
             print(e.message)
-
-
